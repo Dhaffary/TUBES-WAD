@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fotokopi_app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www
+      - ./public/uploads:/var/www/public/uploads
+    depends_on:
+      - db
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+
+  db:
+    image: mysql:8.0
+    container_name: fotokopi_db
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: fotokopi_db
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_USER: fotokopi_user
+      MYSQL_PASSWORD: fotokopi_pass
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

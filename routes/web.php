@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
         
         // Admin melihat daftar semua pesanan
         Route::get('/admin/pesanan', [PesananController::class, 'index'])->name('admin.pesanan.index');
+        // Update status pesanan oleh admin
+Route::patch('/pesanan/{id}/status', [PesananController::class, 'updateStatus'])->name('pesanan.updateStatus');
     });
 
     // --- GRUP KHUSUS PELANGGAN ---

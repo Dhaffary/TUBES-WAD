@@ -10,17 +10,37 @@ use Illuminate\Support\Facades\File;
 
 class PesananController extends Controller
 {
-    // 1. READ: Menampilkan daftar pesanan (Admin vs Pelanggan)
-    public function index()
-    {
-        if (Auth::user()->role == 'admin') {
-            $pesanans = Pesanan::with(['user', 'layanan'])->latest()->get();
-        } else {
-            $pesanans = Pesanan::with('layanan')->where('user_id', Auth::id())->latest()->get();
+   public function index(Request $request)
+{
+    if (Auth::user()->role == 'admin') {
+        $query = Pesanan::with(['user', 'layanan'])->latest();
+
+        // Filter search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('user', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            })->orWhereHas('layanan', function($q) use ($search) {
+                $q->where('nama_layanan', 'like', "%{$search}%");
+            });
         }
-        
-        return view('pesanan.index', compact('pesanans'));
+
+        // Filter status
+        if ($request->filled('status')) {
+            $query->where('status_pesanan', $request->status);
+        }
+
+        $pesanans = $query->paginate(10)->withQueryString();
+    } else {
+        $pesanans = Pesanan::with('layanan')
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->paginate(10);
     }
+
+    return view('pesanan.index', compact('pesanans'));
+}
 
     // 2. FORM CREATE: Menampilkan form pemesanan
     public function create()
@@ -115,5 +135,17 @@ class PesananController extends Controller
     
     // Menampilkan halaman khusus untuk print
     return view('pesanan.cetak_detail', compact('pesanan'));
+}
+// 8. UPDATE STATUS oleh Admin
+public function updateStatus(Request $request, $id)
+{
+    $request->validate([
+        'status_pesanan' => 'required|in:menunggu,diproses,selesai,dibatalkan',
+    ]);
+
+    $pesanan = Pesanan::findOrFail($id);
+    $pesanan->update(['status_pesanan' => $request->status_pesanan]);
+
+    return redirect()->back()->with('success', 'Status pesanan #' . $id . ' berhasil diperbarui!');
 }
 }

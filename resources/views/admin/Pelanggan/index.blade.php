@@ -1,63 +1,85 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="card p-4 shadow-sm">
-        <div class="d-flex justify-content-between mb-3">
-            <h4>Manajemen Pelanggan</h4>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah"> Tambah Pelanggan</button>
+<div class="container py-4">
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+    @endif
 
-        <form action="{{ route('pelanggan.index') }}" method="GET" class="mb-3">
-            <input type="text" name="search" class="form-control" placeholder="Cari nama pelanggan..." value="{{ request('search') }}">
-        </form>
-
-        <table class="table table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>Nama</th>
-                    <th>Alamat</th>
-                    <th>No. Telp</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($pelanggans as $p)
-                <tr>
-                    <td>{{ $p->name }}</td>
-                    <td>{{ $p->alamat }}</td>
-                    <td>{{ $p->no_telepon }}</td>
-                    <td><span class="badge {{ $p->status_pelanggan == 'aktif' ? 'bg-success' : 'bg-danger' }}">{{ $p->status_pelanggan }}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-warning">Edit</button>
-                        <form action="{{ route('pelanggan.destroy', $p->id) }}" method="POST" class="d-inline">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus?')">Hapus</button>
-                        </form>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+    <div class="card border-0 shadow rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center p-3">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-users me-2"></i>Data Pelanggan
+            </h5>
+            <span class="badge bg-primary rounded-pill px-3">
+                Total: {{ $users->count() }} pengguna
+            </span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-4" style="width:60px">#</th>
+                            <th>Nama</th>
+                            <th>Email</th>
+                            <th>No. HP</th>
+                            <th class="text-center">Role</th>
+                            <th class="text-center">Total Pesanan</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($users as $user)
+                        <tr>
+                            <td class="px-4 text-muted fw-bold">{{ $loop->iteration }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center fw-bold text-primary"
+                                         style="width:36px;height:36px;font-size:14px;">
+                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    </div>
+                                    <span class="fw-semibold">{{ $user->name }}</span>
+                                </div>
+                            </td>
+                            <td class="text-muted small">{{ $user->email }}</td>
+                            <td class="text-muted small">{{ $user->no_hp ?? '-' }}</td>
+                            <td class="text-center">
+                                @if($user->role == 'admin')
+                                    <span class="badge bg-danger rounded-pill px-3">Admin</span>
+                                @else
+                                    <span class="badge bg-success rounded-pill px-3">Pelanggan</span>
+                                @endif
+                            </td>
+                            <td class="text-center fw-bold text-primary">
+                                {{ $user->pesanans()->count() ?? 0 }}
+                            </td>
+                            <td class="text-center">
+                                <form action="{{ route('pelanggan.destroy', $user->id) }}" method="POST" class="d-inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm rounded-3"
+                                            onclick="return confirm('Hapus pengguna {{ $user->name }}?')">
+                                        <i class="fas fa-trash me-1"></i>Hapus
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fas fa-users fa-3x mb-3 d-block opacity-25"></i>
+                                Belum ada data pelanggan.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-</div>
-
-<div class="modal fade" id="modalTambah" tabindex="-1">
-  <div class="modal-dialog">
-    <form action="{{ route('pelanggan.store') }}" method="POST" class="modal-content">
-        @csrf
-        <div class="modal-header"><h5>Tambah Pelanggan Baru</h5></div>
-        <div class="modal-body">
-            <input type="text" name="name" class="form-control mb-2" placeholder="Nama" required>
-            <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
-            <textarea name="alamat" class="form-control mb-2" placeholder="Alamat"></textarea>
-            <input type="text" name="no_telepon" class="form-control mb-2" placeholder="No Telepon">
-        </div>
-        <div class="modal-footer">
-            <button type="submit" class="btn btn-primary">Simpan Data</button>
-        </div>
-    </form>
-  </div>
 </div>
 @endsection

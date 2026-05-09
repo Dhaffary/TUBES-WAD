@@ -7,17 +7,12 @@ use Illuminate\Http\Request;
 class UserController extends Controller
 {
     // READ & SEARCH (Poin 3a - Read)
-    public function index(Request $request) {
-        $query = User::where('role', 'pelanggan');
+    public function index()
+{
+    $users = \App\Models\User::where('role', 'pelanggan')->get();
 
-        // Fitur Pencarian (Poin 2)
-        if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
-        }
-
-        $pelanggans = $query->get();
-        return view('admin.pelanggan.index', compact('pelanggans'));
-    }
+    return view('admin.Pelanggan.index', compact('users'));
+}
 
     // CREATE (Poin 3a - Create)
     public function store(Request $request) {

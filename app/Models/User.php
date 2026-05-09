@@ -8,6 +8,10 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     use Notifiable;
+    public function pesanans()
+{
+    return $this->hasMany(\App\Models\Pesanan::class);
+}
 
     protected $fillable = [
         'name',
@@ -20,4 +24,5 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+    
 }
